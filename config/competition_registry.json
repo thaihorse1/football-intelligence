@@ -1,0 +1,12 @@
+{
+  "bundesliga": {
+    "canonical_name": "Bundesliga",
+    "soccer-football-info": {
+      "competition_ids": ["a0d28d6b99d45e79"],
+      "names": ["Bundesliga I"]
+    },
+    "football-data.org": {"competition_codes": ["BL1"]},
+    "openligadb": {"league_codes": ["bl1"]},
+    "api-football": {"competition_codes": ["BL1"], "league_ids": [78]}
+  }
+}
