@@ -134,7 +134,9 @@ def reconciliation_record(
     }
 
 
-def reconcile(football_matches, openliga_matches):
+def reconcile(football_matches, openliga_matches, api_football_matches=None):
+    if api_football_matches is not None:
+        return reconcile_three(football_matches, openliga_matches, api_football_matches)
     results = []
     used_openliga = set()
 
@@ -246,6 +248,89 @@ def reconcile(football_matches, openliga_matches):
     return results
 
 
+def reconcile_three(football_matches, openliga_matches, api_football_matches):
+    """Require pairwise identity agreement; never let a majority hide conflicts."""
+    sources = {
+        "football_data": football_matches,
+        "openliga": openliga_matches,
+        "api_football": api_football_matches,
+    }
+    nodes = [(source, match) for source, matches in sources.items() for match in matches]
+    edges = {index: set() for index in range(len(nodes))}
+    for i, (source, match) in enumerate(nodes):
+        for j in range(i + 1, len(nodes)):
+            other_source, other = nodes[j]
+            if source == other_source:
+                continue
+            if kickoff_difference_minutes(match, other) > 24 * 60:
+                continue
+            if exact_team_match(match, other) or team_similarity(match, other) >= FUZZY_THRESHOLD:
+                edges[i].add(j)
+                edges[j].add(i)
+
+    def record(indices, ambiguous=False):
+        observations = {name: None for name in sources}
+        for index in indices:
+            source, match = nodes[index]
+            observations[source] = match
+        pairs = [
+            (nodes[i][1], nodes[j][1])
+            for offset, i in enumerate(indices) for j in indices[offset + 1:]
+        ]
+        diff = max((kickoff_difference_minutes(a, b) for a, b in pairs), default=None)
+        similarity = min((team_similarity(a, b) for a, b in pairs), default=None)
+        conflicts = []
+        if pairs and not all(exact_team_match(a, b) for a, b in pairs):
+            conflicts.append("TEAM_NAME_CONFLICT")
+        if diff is not None and diff > KICKOFF_TOLERANCE_MINUTES:
+            conflicts.append("KICKOFF_CONFLICT")
+        if ambiguous:
+            status = "AMBIGUOUS_MATCH"
+        elif not pairs:
+            status = "ONLY_" + nodes[indices[0]][0].upper()
+        elif "KICKOFF_CONFLICT" in conflicts:
+            status = "KICKOFF_CONFLICT"
+        elif conflicts:
+            status = "TEAM_NAME_CONFLICT"
+        else:
+            status = "MATCHED"
+        return {
+            "status": status, **observations,
+            "source_count": len(indices),
+            "missing_sources": [name for name, match in observations.items() if match is None],
+            "conflicts": conflicts,
+            "team_similarity": round(similarity, 3) if similarity is not None else None,
+            "kickoff_difference_minutes": round(diff, 1) if diff is not None else None,
+        }
+
+    results, visited = [], set()
+    for index in edges:
+        if index in visited:
+            continue
+        component, pending = set(), [index]
+        while pending:
+            current = pending.pop()
+            if current in component:
+                continue
+            component.add(current)
+            pending.extend(edges[current] - component)
+        visited.update(component)
+        indices = sorted(component)
+        unique_sources = len({nodes[i][0] for i in indices}) == len(indices)
+        complete = all(component - {i} <= edges[i] for i in indices)
+        if unique_sources and complete:
+            results.append(record(indices))
+        else:
+            for i in indices:
+                result = record([i], ambiguous=True)
+                result["candidate_fixtures"] = [
+                    {"source": nodes[j][0], "fixture_id": nodes[j][1]["fixture_id"]}
+                    for j in indices if j != i
+                ]
+                results.append(result)
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -259,6 +344,10 @@ def main():
         default="data/openliga_fixtures.json",
     )
 
+    parser.add_argument(
+        "--api-football",
+        help="Optional API-Football report; enables three-source reconciliation",
+    )
     args = parser.parse_args()
 
     fd_report = load_json(args.football_data)
@@ -272,10 +361,19 @@ def main():
         if match["competition"] == "Bundesliga"
     ]
 
-    results = reconcile(
-        football_matches,
-        openliga_matches,
-    )
+    api_matches = None
+    if args.api_football:
+        api_report = load_json(args.api_football)
+        api_matches = [
+            match for match in api_report["fixtures"]
+            if match.get("competition_code") == "BL1"
+        ]
+        football_matches = [
+            match for match in football_matches
+            if match.get("competition_code") == "BL1"
+        ]
+
+    results = reconcile(football_matches, openliga_matches, api_matches)
 
     summary = {}
 
@@ -300,6 +398,10 @@ def main():
         "summary": summary,
         "results": results,
     }
+
+    if api_matches is not None:
+        report["sources"].append("api-football")
+        report["api_football_fixtures"] = len(api_matches)
 
     print(
         json.dumps(

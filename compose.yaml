@@ -23,3 +23,10 @@ services:
       - ALL
 
     restart: "no"
+
+
+  api-football:
+    extends:
+      service: scout
+    profiles: ["collectors"]
+    command: ["python", "-m", "app.api_football_fixtures"]
