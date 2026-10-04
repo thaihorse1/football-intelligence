@@ -1,0 +1,22 @@
+{
+  "wettbasis": {
+    "name": "Wettbasis",
+    "source_type": "TIPSTER",
+    "enabled": true
+  },
+  "wettfreunde": {
+    "name": "Wettfreunde",
+    "source_type": "TIPSTER",
+    "enabled": true
+  },
+  "leaguelane": {
+    "name": "LeagueLane",
+    "source_type": "TIPSTER",
+    "enabled": true
+  },
+  "gooners-guide": {
+    "name": "Gooners Guide",
+    "source_type": "TIPSTER",
+    "enabled": true
+  }
+}
