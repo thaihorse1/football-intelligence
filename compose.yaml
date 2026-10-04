@@ -30,3 +30,11 @@ services:
       service: scout
     profiles: ["collectors"]
     command: ["python", "-m", "app.api_football_fixtures"]
+
+  soccer-discovery:
+    extends:
+      service: scout
+    profiles: ["collectors"]
+    command: ["python", "-m", "app.soccer_football_info_discovery"]
+    volumes:
+      - ./data/cache/soccer_football_info:/app/data/cache/soccer_football_info
