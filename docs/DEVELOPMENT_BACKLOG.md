@@ -189,6 +189,24 @@ Benchmark criteria:
   Lineup/Rotation, Schedule/Motivation and Local/Official News gathering agents.
 - **Blocking:** Not blocking the acquisition benchmark itself.
 
+## DB-011 — Per-source acquisition policy and robots compliance
+
+- **ID:** DB-011
+- **Status:** PLANNED
+- **Category:** ARCHITECTURE
+- **Origin:** v0.5B
+- **Description:** Every live web-acquisition source must have an explicit
+  acquisition policy recording its verified entry points, robots.txt constraints,
+  prohibited paths, applicable crawl delay or request-rate limit, user-agent
+  policy, and any source-specific access restrictions. Acquisition adapters must
+  not assume that successful HTTP access implies unrestricted crawling.
+- **Why deferred:** v0.5B has only completed initial reachability and robots.txt
+  inspection. Permanent adapters and scheduling have not yet been implemented.
+- **Revisit trigger:** Before implementing or scheduling the first persistent
+  live web-acquisition adapter.
+- **Blocking:** Does not block the v0.5B benchmark, but blocks deployment of a
+  persistent scheduled crawler.
+
 ## Resolved items
 
 ### DB-R001 — Source registry ID syntax hardening
