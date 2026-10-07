@@ -207,6 +207,50 @@ Benchmark criteria:
 - **Blocking:** Does not block the v0.5B benchmark, but blocks deployment of a
   persistent scheduled crawler.
 
+## DB-012 — Oddspedia API requires domain/webmaster registration
+
+- **ID:** DB-012
+- **Status:** BLOCKED
+- **Category:** DEPENDENCY
+- **Origin:** Market / Odds Acquisition research
+- **Description:** Oddspedia exposes potentially useful bookmaker-odds infrastructure,
+  including comparison data and an API/widget platform, but current access requires
+  registration of a website/domain under its webmaster-oriented account model. This
+  does not cleanly match the project's present internal backend/research use case.
+- **Why deferred:** We do not currently need a public domain-backed Oddspedia
+  integration, and other machine-readable odds providers can be evaluated without
+  introducing that dependency.
+- **Revisit trigger:** If the project operates a suitable public domain, Oddspedia
+  introduces private/backend API access without a domain requirement, or other odds
+  providers prove materially inadequate.
+- **Blocking:** Not blocking Market / Odds development. Oddspedia must not be used as
+  a required production dependency unless the account/licensing model is reviewed
+  again.
+
+## DB-013 — Paid data-provider self-funding gate
+
+- **ID:** DB-013
+- **Status:** PLANNED
+- **Category:** DEPENDENCY
+- **Origin:** Market / Odds Acquisition research
+- **Description:** Paid recurring data infrastructure such as premium OddsPapi
+  access, direct Pinnacle data access, Sportmonks Premium, or comparable
+  bookmaker/market feeds is permitted in principle, but should be introduced
+  only after the football betting system has demonstrated that it can
+  sustainably cover its own operating costs. Paid feeds are scale-up
+  infrastructure, not a prerequisite for proving the model.
+- **Why deferred:** The current objective is to validate the selection,
+  pricing, execution and CLV process using free tiers, trials, accessible
+  market data and lightweight acquisition before adding material recurring
+  costs.
+- **Revisit trigger:** Before purchasing or activating any recurring paid
+  odds/data subscription, or when demonstrated project profitability makes
+  higher-quality data economically justifiable.
+- **Blocking:** Does not block Market / Odds development. Any recurring paid
+  subscription requires explicit approval and should be justified by both
+  sustainable project profitability and a clear expected improvement in data
+  quality, coverage, freshness, market depth or decision quality.
+
 ## Resolved items
 
 ### DB-R001 — Source registry ID syntax hardening
